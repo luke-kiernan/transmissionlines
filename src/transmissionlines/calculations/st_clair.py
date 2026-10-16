@@ -349,21 +349,20 @@ def calculate_st_clair_curve_for_line(
     if previous.line_uuid != line.uuid or previous.configuration_uuid != configuration.uuid:
         raise ValueError("previous electrical result does not match selected line and configuration")
     specifications = {spec.circuit_id: spec for spec in configuration.circuits}
-    voltage_kv = line.nominal_voltage.to("kilovolt").magnitude
     inputs = []
     for circuit_id, scalars in previous.electrical.circuit_scalars.items():
         spec = specifications[circuit_id]
-        if spec.conductor_spec.equipment.ampacity is None:
+        if spec.conductor_spec.equipment.ampacity_a is None:
             raise ValueError(f"missing conductor ampacity for {circuit_id}")
         inputs.append({
             "circuit_id": circuit_id,
             "conductor_family": spec.conductor_spec.family,
             "conductor_codeword": spec.conductor_spec.codeword,
-            "nominal_voltage_kv": voltage_kv,
+            "nominal_voltage_kv": line.nominal_voltage_kv,
             "r_ohm_per_mile": scalars["r1"],
             "x_ohm_per_mile": scalars["x1"],
             "b_microsiemens_per_mile": scalars["b1"],
-            "conductor_ampacity_a": spec.conductor_spec.equipment.ampacity.to("ampere").magnitude,
+            "conductor_ampacity_a": spec.conductor_spec.equipment.ampacity_a,
             "subconductor_count": spec.bundle_spec.subconductor_count,
         })
     return calculate_st_clair(
